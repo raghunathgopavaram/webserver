@@ -133,7 +133,6 @@ def get_pending_titles():
     ''', (today,))
     pending_titles = cursor.fetchall()
     conn.close()
-
     return jsonify([title[0] for title in pending_titles])
 
 @app.route('/get_pending_targets', methods=['GET'])
@@ -142,13 +141,13 @@ def get_pending_targets():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT id, title, duration, day FROM work_tasks
+        SELECT id, title, type, duration, day FROM work_tasks
         WHERE percent_done < 100 AND day >= ?
     ''', (today,))
     pending_targets = cursor.fetchall()
     conn.close()
-
-    return jsonify([{'id': row[0], 'title': row[1], 'duration': row[2], 'day': row[3]} for row in pending_targets])
+    print(pending_targets)
+    return jsonify([{'id': row[0], 'title': row[1], 'type':row[2],'duration': row[3], 'day': row[4]} for row in pending_targets])
 
 @app.route('/view_data')
 def view_data():
