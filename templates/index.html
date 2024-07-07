@@ -128,7 +128,7 @@
         }
         /* Specific styles for the stats section */
         .stats .form-group-inline .form-group input[type="date"] {
-            width: 50%; /* Reduce the width of date input fields in the stats section */
+            width: 70%; /* Reduce the width of date input fields in the stats section */
         }
         .stats .form-group-inline .button {
             height: 60px; /* Reduce the height of the Show Stats button */
@@ -380,7 +380,7 @@
                         const taskElement = document.createElement('div');
                         taskElement.className = 'work-target';
                         taskElement.innerHTML = `
-                            <span>${task.title} - ${task.duration} hours on ${task.day}</span>
+                            <span>${task.title} | ${task.type} | ${task.duration} hours on ${task.day}</span>
                             <button onclick="deleteTarget(${task.id})">Delete</button>
                         `;
                         workTargetsList.appendChild(taskElement);
