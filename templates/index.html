@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Target Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #1e1e1e;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            border-radius: 12px;
+        }
+        h1, h2 {
+            color: #bb86fc;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: #2c2c2c;
+            color: #e0e0e0;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #bb86fc;
+            outline: none;
+        }
+        .form-group button, .button {
+            padding: 12px 20px;
+            background-color: #bb86fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .form-group button:hover, .button:hover {
+            background-color: #9b59b6;
+            transform: translateY(-2px);
+        }
+        .stats {
+            margin-top: 30px;
+        }
+        .stats h2 {
+            margin-bottom: 20px;
+        }
+        .stats canvas {
+            width: 100%;
+            height: 400px;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-box {
+            padding: 20px;
+            background: #2c2c2c;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .form-group-inline {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .form-group-inline .form-group {
+            flex: 1;
+        }
+        .form-group-inline .form-group input {
+            width: 100%;
+        }
+        .form-group select {
+            appearance: none;
+            background: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23bb86fc" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>') no-repeat right 10px center;
+            background-size: 8px 10px;
+        }
+        .work-targets {
+            margin-top: 20px;
+        }
+        .work-target {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #3c3c3c;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .work-target button {
+            background-color: #ff4d4d;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .work-target button:hover {
+            background-color: #cc0000;
+            transform: translateY(-2px);
+        }
+        /* Specific styles for the stats section */
+        .stats .form-group-inline .form-group input[type="date"] {
+            width: 50%; /* Reduce the width of date input fields in the stats section */
+        }
+        .stats .form-group-inline .button {
+            height: 60px; /* Reduce the height of the Show Stats button */
+            padding: 5px 10px; /* Adjust padding for the button */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work Target Tracker</h1>
+
+        <div class="form-container">
+            <div class="form-box">
+                <div class="form-group">
+                    <label for="formType">Select Action</label>
+                    <select id="formType" onchange="toggleForm()">
+                        <option value="create">Create Work Target</option>
+                        <option value="update">Update Work Progress</option>
+                        <option value="view">View Current Data</option>
+                    </select>
+                </div>
+                <form id="createForm" action="/create_target" method="POST">
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="workTitle">Work Title</label>
+                            <input type="text" id="workTitle" name="workTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="workDuration">Work Duration (hours)</label>
+                            <input type="number" id="workDuration" name="workDuration" required>
+                        </div>
+                    </div>
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="workType">Type of Work</label>
+                            <input type="text" id="workType" name="workType" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="workDay">Work Day</label>
+                            <input type="date" id="workDay" name="workDay" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="button">Create Target</button>
+                </form>
+                <form id="updateForm" action="/update_progress" method="POST" style="display: none;">
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="updateTitle">Work Title</label>
+                            <select id="updateTitle" name="updateTitle" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="durationSpent">Duration Spent (hours)</label>
+                            <input type="number" id="durationSpent" name="durationSpent" required>
+                        </div>
+                    </div>
+                    <div class="form-group-inline">
+                        <div class="form-group">
+                            <label for="workUpdate">Work Update</label>
+                            <textarea id="workUpdate" name="workUpdate" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="percentDone">Percent of Work Done</label>
+                            <input type="number" id="percentDone" name="percentDone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="workDay">Work Day</label>
+                            <input type="date" id="updateWorkDay" name="workDay" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="button">Update Progress</button>
+                </form>
+                <div id="viewData" style="display: none;">
+                    <a href="/view_data" class="button">View Current Data</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="work-targets">
+            <h2>Pending Work Targets</h2>
+            <div id="workTargetsList"></div>
+        </div>
+
+        <div class="stats">
+            <h2>Overall Stats</h2>
+            <div class="form-group-inline">
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                </div>
+                <button onclick="fetchStats()" class="button">Show Stats</button>
+            </div>
+            <canvas id="workStats"></canvas>
+            <canvas id="percentageStats"></canvas> <!-- New canvas for percentage of work done -->
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleForm() {
+            const formType = document.getElementById('formType').value;
+            const createForm = document.getElementById('createForm');
+            const updateForm = document.getElementById('updateForm');
+            const viewData = document.getElementById('viewData');
+
+            if (formType === 'create') {
+                createForm.style.display = 'block';
+                updateForm.style.display = 'none';
+                viewData.style.display = 'none';
+            } else if (formType === 'update') {
+                createForm.style.display = 'none';
+                updateForm.style.display = 'block';
+                viewData.style.display = 'none';
+                fetchPendingTitles();
+            } else if (formType === 'view') {
+                createForm.style.display = 'none';
+                updateForm.style.display = 'none';
+                viewData.style.display = 'block';
+            }
+        }
+
+        let chartInstance = null;
+        let percentageChartInstance = null; // New chart instance for percentage of work done
+
+        function fetchStats() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            fetch(`/get_stats?start_date=${startDate}&end_date=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const ctx = document.getElementById('workStats').getContext('2d');
+                    const percentageCtx = document.getElementById('percentageStats').getContext('2d'); // Context for new chart
+
+                    let labels = data.map(item => item.day);
+                    let hoursPlanned = data.map(item => item.total_duration);
+                    let hoursSpent = data.map(item => item.total_duration_spent);
+                    let percentageDone = data.map(item => item.percent_work_done);
+
+                    // Check if data is empty or all values are zero
+                    const isEmptyData = data.length === 0 || (hoursPlanned.every(val => val === 0) && hoursSpent.every(val => val === 0));
+
+                    if (isEmptyData) {
+                        labels = ['No Data'];
+                        hoursPlanned = [0];
+                        hoursSpent = [0];
+                        percentageDone = [0];
+                    }
+
+                    const chartData = {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Hours Planned',
+                                data: hoursPlanned,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Hours Spent',
+                                data: hoursSpent,
+                                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                                borderColor: 'rgba(255, 99, 132, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    };
+
+                    const percentageChartData = {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Percentage of Work Done',
+                                data: percentageDone,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }
+                        ]
+                    };
+
+                    // Destroy the previous chart instances if they exist
+                    if (chartInstance) {
+                        chartInstance.destroy();
+                    }
+                    if (percentageChartInstance) {
+                        percentageChartInstance.destroy();
+                    }
+
+                    // Create new chart instances
+                    chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: chartData,
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    beginAtZero: true
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+
+                    percentageChartInstance = new Chart(percentageCtx, {
+                        type: 'bar',
+                        data: percentageChartData,
+                        options: {
+                            responsive: true,
+                            scales: {
+                                x: {
+                                    beginAtZero: true
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100 // Ensure the y-axis max is 100%
+                                }
+                            }
+                        }
+                    });
+                });
+        }
+
+
+        function fetchPendingTitles() {
+            fetch('/get_pending_titles')
+                .then(response => response.json())
+                .then(data => {
+                    const updateTitleSelect = document.getElementById('updateTitle');
+                    updateTitleSelect.innerHTML = '';
+                    data.forEach(title => {
+                        const option = document.createElement('option');
+                        option.value = title;
+                        option.textContent = title;
+                        updateTitleSelect.appendChild(option);
+                    });
+                });
+        }
+
+        function fetchPendingTargets() {
+            fetch('/get_pending_targets')
+                .then(response => response.json())
+                .then(data => {
+                    const workTargetsList = document.getElementById('workTargetsList');
+                    workTargetsList.innerHTML = '';
+                    data.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = 'work-target';
+                        taskElement.innerHTML = `
+                            <span>${task.title} - ${task.duration} hours on ${task.day}</span>
+                            <button onclick="deleteTarget(${task.id})">Delete</button>
+                        `;
+                        workTargetsList.appendChild(taskElement);
+                    });
+                });
+        }
+
+        function deleteTarget(id) {
+            fetch(`/delete_target/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        fetchPendingTargets();
+                    } else {
+                        alert('Failed to delete target');
+                    }
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            document.getElementById('endDate').value = today;
+            document.getElementById('startDate').value = sevenDaysAgo;
+
+            fetchStats();
+            fetchPendingTargets();
+        });
+    </script>
+</body>
+</html>
