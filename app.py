@@ -54,15 +54,14 @@ def update_progress():
     duration_spent = request.form['durationSpent']
     work_update = request.form['workUpdate']
     percent_done = request.form['percentDone']
-    work_day = request.form['workDay']
 
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE work_tasks
         SET duration_spent = duration_spent + ?, work_update = ?, percent_done = ?
-        WHERE title = ? AND day = ?
-    ''', (duration_spent, work_update, percent_done, title, work_day))
+        WHERE title = ?
+    ''', (duration_spent, work_update, percent_done, title))
     conn.commit()
     conn.close()
 
@@ -164,4 +163,3 @@ def view_data():
 if __name__ == '__main__':
     init_db()
     app.run(host='0.0.0.0', port=5000)
-
